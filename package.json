@@ -2,7 +2,7 @@
   "publisher": "simonhe",
   "name": "vscode-care",
   "displayName": "vscode-care",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "packageManager": "pnpm@8.10.5",
   "description": "vscode-care",
   "author": "Simon He <https://github.com/Simon-He95>",
@@ -28,7 +28,7 @@
     "dist"
   ],
   "engines": {
-    "vscode": "^1.77.0"
+    "vscode": "^1.84.1"
   },
   "activationEvents": [
     "onStartupFinished"
