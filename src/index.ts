@@ -166,7 +166,8 @@ export function activate(context: ExtensionContext) {
 
     if (isOverTime('17:00') && !isOverTime(end_work_time)) {
       const [, second] = end_work_time.split(':')
-      const [, nowSecond] = getTime().split(';')
+      const [, nowSecond] = getTime().split(':')
+
       const text = `下班还有${Math.abs(+nowSecond - +second)}分钟下班，加油～ 💪`
       if (curText === text)
         return
