@@ -270,9 +270,9 @@ function getTime() {
 function isOverTime(time: string) {
   const [hour, minute] = time.split(':')
   const [nowHour, nowMinute] = getTime().split(':')
-  if (nowHour > hour)
+  if (+nowHour > +hour)
     return true
-  if (nowHour === hour && nowMinute > minute)
+  if (nowHour === hour && +nowMinute > +minute)
     return true
   return false
 }
