@@ -1,19 +1,31 @@
 import { addEventListener, createBottomBar, message } from '@vscode-use/utils'
 import type { ExtensionContext } from 'vscode'
+import { getDayOfWeek, getSpecialHoliday, getTime, isOverTime, isWeekend, timeDifference } from './utils'
 
 const start_work_time = '9:00'
 const end_work_time = '18:00'
-let curText = ''
 
+let curText = ''
+let stop: any
+
+let shitTimer: any
 export function activate(context: ExtensionContext) {
   const btn = createBottomBar({
     position: 'right',
-    text: '',
-    tooltip: '',
-    color: '',
+    text: '今天也要元气满满鸭 🦆',
+    tooltip: '今天也要元气满满鸭 🦆 ',
+    color: '#82c6f7',
   })
-
-  const earylyMsgs = [
+  const colors = ['#2ed9b1', '#82c6f7', '#40a9f0', '#a4f6db', '#a6f9fb', '#24e1ec', '#7df8bd']
+  let count = 1
+  shitTimer = setInterval(() => {
+    btn.text = `今天也要元气满满鸭${' '.repeat(6 - count)}🦆${'💩'.repeat(count - 1)}`
+    btn.color = colors[count]
+    count = count > 5 ? 1 : count + 1
+    btn.show()
+  }, 500)
+  let isCountDown = false
+  const earlyMsgs = [
     '我的天，你今天也来的太早了吧～ 👋',
     '早上好鸭，程序员～ 🧑‍💻',
     '来的早，别忘了吃早餐哦～ 🍙',
@@ -61,6 +73,8 @@ export function activate(context: ExtensionContext) {
   const festival = getSpecialHoliday()
   let once = false
   context.subscriptions.push(addEventListener('text-change', () => {
+    if (shitTimer)
+      clearInterval(shitTimer)
     if (festival && !once) {
       message.info(festival)
       once = true
@@ -76,7 +90,7 @@ export function activate(context: ExtensionContext) {
         return
       const run = () => {
         isRun = true
-        const text = earylyMsgs[Math.floor(Math.random() * earylyMsgs.length)]
+        const text = earlyMsgs[Math.floor(Math.random() * earlyMsgs.length)]
         if (curText === text)
           return
         curText = text
@@ -165,18 +179,21 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('17:00') && !isOverTime(end_work_time)) {
-      const [hour, second] = end_work_time.split(':')
-      const [nowHour, nowSecond] = getTime().split(':')
-      const timeDis = (+hour - +nowHour) * 60 + (+second - +nowSecond)
-      const text = `下班还有${timeDis}分钟下班，加油～ 💪`
-      if (curText === text)
+      if (isCountDown)
         return
+      isCountDown = true
       btn.color = '#ea9148'
-      curText = text
-      btn.tooltip = btn.text = text
-      btn.show()
+      stop = setInterval(() => {
+        const text = `下班还有${timeDifference(end_work_time)}分钟下班，加油～ 💪`
+        curText = text
+        btn.tooltip = btn.text = text
+        btn.show()
+      }, 1000)
       return
     }
+
+    if (stop)
+      clearInterval(stop)
 
     if (isOverTime(end_work_time) && !isOverTime('18:10')) {
       if (isRun)
@@ -258,55 +275,8 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate() {
-
-}
-
-function getTime() {
-  const now = new Date()
-  const hour = now.getHours()
-  const minute = now.getMinutes()
-  return `${hour}:${minute}`
-}
-
-function isOverTime(time: string) {
-  const [hour, minute] = time.split(':')
-  const [nowHour, nowMinute] = getTime().split(':')
-  if (+nowHour > +hour)
-    return true
-  if (nowHour === hour && +nowMinute > +minute)
-    return true
-  return false
-}
-
-function getDayOfWeek() {
-  const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-  const today = new Date().getDay()
-  return daysOfWeek[today]
-}
-
-function isWeekend() {
-  return ['星期日', '星期六'].includes(getDayOfWeek())
-}
-
-function getSpecialHoliday() {
-  const today = new Date()
-  const month = today.getMonth() + 1 // 月份从 0 开始，需要加1
-  const day = today.getDate()
-
-  // 特殊节日的日期，以月份和日期为键值对
-  const specialHolidays: any = {
-    '1-1': '今天是元旦节 —— 迎接新年，庆祝活动，休假放松。',
-    '2-14': '今天是情人节 —— 送礼物、表达爱意，约会，浪漫晚餐。',
-    '3-8': '今天是妇女节 —— 表达对女性的尊重和赞美，送花、礼物。',
-    '4-1': '今天是愚人节 —— 开玩笑，恶作剧，互相愚弄。',
-    '5-1': '今天是劳动节 —— 庆祝劳动者，休假旅游，社区活动。',
-    '6-1': '今天是儿童节 —— 关爱儿童，举办儿童活动，赠送礼物。',
-    '9-10': '今天是教师节 —— 感谢教师，送花、礼物，致以敬意。',
-    '10-1': '今天是国庆节 —— 庆祝国家，观看阅兵、焰火，旅游出游。',
-    '12-25': '今天是圣诞节 —— 庆祝耶稣诞生，交换礼物，家庭聚会。',
-    // 可以根据需要继续添加其他节日
-  }
-
-  const holidayKey = `${month}-${day}`
-  return specialHolidays[holidayKey]
+  if (stop)
+    clearInterval(stop)
+  if (shitTimer)
+    clearInterval(shitTimer)
 }
