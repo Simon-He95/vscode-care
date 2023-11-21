@@ -9,6 +9,15 @@ let curText = ''
 let stop: any
 
 let shitTimer: any
+const bus = {
+  data: [] as Function[],
+  emit() {
+    this.data.forEach(fn => fn())
+  },
+  on(fn: Function) {
+    this.data.push(fn)
+  },
+}
 export function activate(context: ExtensionContext) {
   const btn = createBottomBar({
     position: 'right',
@@ -72,9 +81,11 @@ export function activate(context: ExtensionContext) {
   let isRun = false
   const festival = getSpecialHoliday()
   let once = false
-  context.subscriptions.push(addEventListener('text-change', () => {
+  bus.on(() => {
     if (shitTimer)
       clearInterval(shitTimer)
+  })
+  context.subscriptions.push(addEventListener('text-change', () => {
     if (festival && !once) {
       message.info(festival)
       once = true
@@ -83,9 +94,11 @@ export function activate(context: ExtensionContext) {
       btn.tooltip = btn.text = '你小子，周末也在卷是吧，真要007？'
       btn.color = '#62BAF3'
       btn.show()
+      bus.emit()
       return
     }
     if (!isOverTime(start_work_time) && isOverTime('6:00')) {
+      bus.emit()
       if (isRun)
         return
       const run = () => {
@@ -114,6 +127,7 @@ export function activate(context: ExtensionContext) {
 
     if (isOverTime(start_work_time) && !isOverTime('10:00')) {
       const text = '现在还早，再摸会鱼吧～ 😄'
+      bus.emit()
       if (curText === text)
         return
       curText = text
@@ -124,6 +138,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('11:30') && !isOverTime('12:00')) {
+      bus.emit()
       if (isRun)
         return
       const run = () => {
@@ -147,6 +162,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('12:00') && !isOverTime('12:30')) {
+      bus.emit()
       const text = '你小子中饭也不吃，想卷死我们？😠'
       if (curText === text)
         return
@@ -158,6 +174,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('13:00') && !isOverTime('13:30')) {
+      bus.emit()
       if (isRun)
         return
       const run = () => {
@@ -179,6 +196,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('17:00') && !isOverTime(end_work_time)) {
+      bus.emit()
       if (isCountDown)
         return
       isCountDown = true
@@ -196,6 +214,7 @@ export function activate(context: ExtensionContext) {
       clearInterval(stop)
 
     if (isOverTime(end_work_time) && !isOverTime('18:10')) {
+      bus.emit()
       if (isRun)
         return
       const run = () => {
@@ -217,6 +236,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('18:10') && !isOverTime('20:00')) {
+      bus.emit()
       const text = '小伙子怎么回事，还不下班，难道领导给你加班费？ 🤔️'
       if (curText === text)
         return
@@ -247,6 +267,7 @@ export function activate(context: ExtensionContext) {
     }
 
     if (isOverTime('20:00')) {
+      bus.emit()
       if (isRun)
         return
       const run = () => {
