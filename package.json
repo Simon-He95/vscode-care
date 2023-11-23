@@ -23,7 +23,7 @@
     "Other"
   ],
   "main": "./dist/index.js",
-  "icon": "icon.png",
+  "icon": "assets/kv.png",
   "files": [
     "dist"
   ],
