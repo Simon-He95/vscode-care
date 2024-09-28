@@ -1,5 +1,4 @@
-import type { ExtensionContext } from 'vscode'
-import { addEventListener, createBottomBar, message } from '@vscode-use/utils'
+import { addEventListener, createBottomBar, createExtension, executeCommand, message } from '@vscode-use/utils'
 import { getDayOfWeek, getSpecialHoliday, getTime, isOverTime, isWeekend, timeDifference } from './utils'
 
 const start_work_time = '9:00'
@@ -18,7 +17,9 @@ const bus = {
     this.data.push(fn)
   },
 }
-export function activate(context: ExtensionContext) {
+const weekMap: Record<string, boolean> = {}
+export = createExtension(() => {
+  const locks = [false]
   const btn = createBottomBar({
     position: 'right',
     text: '今天也要元气满满鸭 🦆',
@@ -85,219 +86,241 @@ export function activate(context: ExtensionContext) {
     if (shitTimer)
       clearInterval(shitTimer)
   })
-  context.subscriptions.push(addEventListener('text-change', () => {
-    if (festival && !once) {
-      message.info(festival)
-      once = true
-    }
-    if (isWeekend()) {
-      btn.tooltip = btn.text = '你小子，周末也在卷是吧，真要007？'
-      btn.color = '#62BAF3'
-      btn.show()
-      bus.emit()
-      return
-    }
-    if (!isOverTime(start_work_time) && isOverTime('6:00')) {
-      bus.emit()
-      if (isRun)
+  return [
+    addEventListener('text-change', (e) => {
+      if (e.reason === 1)
         return
-      const run = () => {
-        isRun = true
-        const text = earlyMsgs[Math.floor(Math.random() * earlyMsgs.length)]
-        if (curText === text)
-          return
-        curText = text
-        btn.tooltip = btn.text = text
+      const today = getDayOfWeek()
+      for (const key in weekMap) {
+        if (key !== today) {
+          weekMap[key] = false
+        }
+      }
+      if (festival && !once) {
+        message.info(festival)
+        once = true
+      }
+      if (isWeekend()) {
+        locks[0] = true
+        btn.tooltip = btn.text = '你小子，周末也在卷是吧，真要007？'
         btn.color = '#62BAF3'
         btn.show()
-      }
-
-      run()
-      setTimeout(() => {
-        isRun = false
-      }, 60000)
-      return
-    }
-
-    // 每隔30分钟提醒一次喝水
-    if (isOverTime(getTime().replace(/:\d+/, ':30')) && !isOverTime(getTime().replace(/:\d+/, ':31'))) {
-      const text = '喝水时间到了，喝水喝水喝水～ 🍻'
-      message.info(text)
-    }
-
-    if (isOverTime(start_work_time) && !isOverTime('10:00')) {
-      const text = '现在还早，再摸会鱼吧～ 😄'
-      bus.emit()
-      if (curText === text)
-        return
-      curText = text
-      btn.color = '#70e5ab'
-      btn.tooltip = btn.text = text
-      btn.show()
-      return
-    }
-
-    if (isOverTime('11:30') && !isOverTime('12:00')) {
-      bus.emit()
-      if (isRun)
-        return
-      const run = () => {
-        isRun = true
-        const text = beforeLunchMsgs[Math.floor(Math.random() * beforeLunchMsgs.length)]
-        if (curText === text)
-          return
-        curText = text
-        btn.color = '#dec966'
-
-        btn.tooltip = btn.text = text
-        btn.show()
-      }
-
-      run()
-      setTimeout(() => {
-        isRun = false
-      }, 60000)
-
-      return
-    }
-
-    if (isOverTime('12:00') && !isOverTime('12:30')) {
-      bus.emit()
-      const text = '你小子中饭也不吃，想卷死我们？😠'
-      if (curText === text)
-        return
-      curText = text
-      btn.color = '#4cb4d6'
-      btn.tooltip = btn.text = text
-      btn.show()
-      return
-    }
-
-    if (isOverTime('13:00') && !isOverTime('13:30')) {
-      bus.emit()
-      if (isRun)
-        return
-      const run = () => {
-        isRun = true
-        const text = lunchMsgs[Math.floor(Math.random() * lunchMsgs.length)]
-        if (curText === text)
-          return
-        curText = text
-        btn.color = '#f4d257'
-        btn.tooltip = btn.text = text
-        btn.show()
-      }
-
-      run()
-      setTimeout(() => {
-        isRun = false
-      }, 60000)
-      return
-    }
-
-    if (isOverTime('17:00') && !isOverTime(end_work_time)) {
-      bus.emit()
-      if (isCountDown)
-        return
-      isCountDown = true
-      btn.color = '#ea9148'
-      stop = setInterval(() => {
-        const text = `下班还有${timeDifference(end_work_time)}分钟下班，加油～ 💪`
-        curText = text
-        btn.tooltip = btn.text = text
-        btn.show()
-      }, 1000)
-      return
-    }
-
-    if (stop)
-      clearInterval(stop)
-
-    if (isOverTime(end_work_time) && !isOverTime('18:10')) {
-      bus.emit()
-      if (isRun)
-        return
-      const run = () => {
-        isRun = true
-        const text = endMsgs[Math.floor(Math.random() * endMsgs.length)]
-        if (curText === text)
-          return
-        curText = text
-        btn.color = '#ff655a'
-        btn.tooltip = btn.text = text
-        btn.show()
-      }
-
-      run()
-      setTimeout(() => {
-        isRun = false
-      }, 60000)
-      return
-    }
-
-    if (isOverTime('18:10') && !isOverTime('20:00')) {
-      bus.emit()
-      const text = '小伙子怎么回事，还不下班，难道领导给你加班费？ 🤔️'
-      if (curText === text)
-        return
-      curText = text
-      btn.tooltip = btn.text = text
-      btn.color = '#ff9af4'
-      btn.show()
-      message.info({
-        message: text,
-        buttons: ['有加班费', '没有'],
-      }).then((res) => {
-        if (res === '有加班费') {
-          message.info('那就好，加油吧～')
-          const text = '真令人羡慕有加班费的人～ 😍'
-          btn.tooltip = btn.text = text
-          btn.color = '#eec9ed'
-          btn.show()
+        bus.emit()
+        if (!weekMap[today]) {
+          executeCommand('undo')
+          message.info({
+            message: '周末了，不让你 coding，除非你选择继续卷 😠',
+            buttons: ['继续卷'],
+          }).then((c) => {
+            if (c === '继续卷') {
+              weekMap[today] = true
+            }
+          })
         }
         else {
-          message.info('没加班费，还不赶紧滚回家～')
-          const text = '最讨厌你这种卷王了～ 😠'
-          btn.color = '#eec9c9'
+          return
+        }
+      }
+      if (!isOverTime(start_work_time) && isOverTime('6:00')) {
+        bus.emit()
+        if (isRun)
+          return
+        const run = () => {
+          isRun = true
+          const text = earlyMsgs[Math.floor(Math.random() * earlyMsgs.length)]
+          if (curText === text)
+            return
+          curText = text
           btn.tooltip = btn.text = text
+          btn.color = '#62BAF3'
           btn.show()
         }
-      })
-      return
-    }
 
-    if (isOverTime('20:00')) {
-      bus.emit()
-      if (isRun)
+        run()
+        setTimeout(() => {
+          isRun = false
+        }, 60000)
         return
-      const run = () => {
-        isRun = true
-        const text = endMsgs[Math.floor(Math.random() * endMsgs.length)]
+      }
+
+      // 每隔30分钟提醒一次喝水
+      if (isOverTime(getTime().replace(/:\d+/, ':30')) && !isOverTime(getTime().replace(/:\d+/, ':31'))) {
+        const text = '喝水时间到了，喝水喝水喝水～ 🍻'
+        message.info(text)
+      }
+
+      if (isOverTime(start_work_time) && !isOverTime('10:00')) {
+        const text = '现在还早，再摸会鱼吧～ 😄'
+        bus.emit()
         if (curText === text)
           return
         curText = text
-        btn.color = '#ff655a'
+        btn.color = '#70e5ab'
         btn.tooltip = btn.text = text
         btn.show()
+        return
       }
 
-      run()
-      setTimeout(() => {
-        isRun = false
-      }, 60000)
-      const text = warningMsgs[Math.floor(Math.random() * warningMsgs.length)]
-      curText = text
-      btn.tooltip = btn.text = text
-      btn.show()
-      btn.color = '#e90101'
-      message.info(text)
-    }
-  }))
-}
+      if (isOverTime('11:30') && !isOverTime('12:00')) {
+        bus.emit()
+        if (isRun)
+          return
+        const run = () => {
+          isRun = true
+          const text = beforeLunchMsgs[Math.floor(Math.random() * beforeLunchMsgs.length)]
+          if (curText === text)
+            return
+          curText = text
+          btn.color = '#dec966'
 
-export function deactivate() {
+          btn.tooltip = btn.text = text
+          btn.show()
+        }
+
+        run()
+        setTimeout(() => {
+          isRun = false
+        }, 60000)
+
+        return
+      }
+
+      if (isOverTime('12:00') && !isOverTime('12:30')) {
+        bus.emit()
+        const text = '你小子中饭也不吃，想卷死我们？😠'
+        if (curText === text)
+          return
+        curText = text
+        btn.color = '#4cb4d6'
+        btn.tooltip = btn.text = text
+        btn.show()
+        return
+      }
+
+      if (isOverTime('13:00') && !isOverTime('13:30')) {
+        bus.emit()
+        if (isRun)
+          return
+        const run = () => {
+          isRun = true
+          const text = lunchMsgs[Math.floor(Math.random() * lunchMsgs.length)]
+          if (curText === text)
+            return
+          curText = text
+          btn.color = '#f4d257'
+          btn.tooltip = btn.text = text
+          btn.show()
+        }
+
+        run()
+        setTimeout(() => {
+          isRun = false
+        }, 60000)
+        return
+      }
+
+      if (isOverTime('17:00') && !isOverTime(end_work_time)) {
+        bus.emit()
+        if (isCountDown)
+          return
+        isCountDown = true
+        btn.color = '#ea9148'
+        stop = setInterval(() => {
+          const text = `下班还有${timeDifference(end_work_time)}分钟下班，加油～ 💪`
+          curText = text
+          btn.tooltip = btn.text = text
+          btn.show()
+        }, 1000)
+        return
+      }
+
+      if (stop)
+        clearInterval(stop)
+
+      if (isOverTime(end_work_time) && !isOverTime('18:10')) {
+        bus.emit()
+        if (isRun)
+          return
+        const run = () => {
+          isRun = true
+          const text = endMsgs[Math.floor(Math.random() * endMsgs.length)]
+          if (curText === text)
+            return
+          curText = text
+          btn.color = '#ff655a'
+          btn.tooltip = btn.text = text
+          btn.show()
+        }
+
+        run()
+        setTimeout(() => {
+          isRun = false
+        }, 60000)
+        return
+      }
+
+      if (isOverTime('18:10') && !isOverTime('20:00')) {
+        bus.emit()
+        const text = '小伙子怎么回事，还不下班，难道领导给你加班费？ 🤔️'
+        if (curText === text)
+          return
+        curText = text
+        btn.tooltip = btn.text = text
+        btn.color = '#ff9af4'
+        btn.show()
+        message.info({
+          message: text,
+          buttons: ['有加班费', '没有'],
+        }).then((res) => {
+          if (res === '有加班费') {
+            message.info('那就好，加油吧～')
+            const text = '真令人羡慕有加班费的人～ 😍'
+            btn.tooltip = btn.text = text
+            btn.color = '#eec9ed'
+            btn.show()
+          }
+          else {
+            message.info('没加班费，还不赶紧滚回家～')
+            const text = '最讨厌你这种卷王了～ 😠'
+            btn.color = '#eec9c9'
+            btn.tooltip = btn.text = text
+            btn.show()
+          }
+        })
+        return
+      }
+
+      if (isOverTime('20:00')) {
+        bus.emit()
+        if (isRun)
+          return
+        const run = () => {
+          isRun = true
+          const text = endMsgs[Math.floor(Math.random() * endMsgs.length)]
+          if (curText === text)
+            return
+          curText = text
+          btn.color = '#ff655a'
+          btn.tooltip = btn.text = text
+          btn.show()
+        }
+
+        run()
+        setTimeout(() => {
+          isRun = false
+        }, 60000)
+        const text = warningMsgs[Math.floor(Math.random() * warningMsgs.length)]
+        curText = text
+        btn.tooltip = btn.text = text
+        btn.show()
+        btn.color = '#e90101'
+        message.info(text)
+      }
+    }),
+  ]
+}, () => {
   if (stop)
     clearInterval(stop)
   if (shitTimer)
     clearInterval(shitTimer)
-}
+})
