@@ -1,5 +1,5 @@
-import { addEventListener, createBottomBar, message } from '@vscode-use/utils'
 import type { ExtensionContext } from 'vscode'
+import { addEventListener, createBottomBar, message } from '@vscode-use/utils'
 import { getDayOfWeek, getSpecialHoliday, getTime, isOverTime, isWeekend, timeDifference } from './utils'
 
 const start_work_time = '9:00'
@@ -10,11 +10,11 @@ let stop: any
 
 let shitTimer: any
 const bus = {
-  data: [] as Function[],
+  data: [] as (() => void)[],
   emit() {
     this.data.forEach(fn => fn())
   },
-  on(fn: Function) {
+  on(fn: () => void) {
     this.data.push(fn)
   },
 }
@@ -120,7 +120,7 @@ export function activate(context: ExtensionContext) {
     }
 
     // 每隔30分钟提醒一次喝水
-    if (isOverTime(getTime().replace(/\:[0-9]+/, ':30')) && !isOverTime(getTime().replace(/\:[0-9]+/, ':31'))) {
+    if (isOverTime(getTime().replace(/:\d+/, ':30')) && !isOverTime(getTime().replace(/:\d+/, ':31'))) {
       const text = '喝水时间到了，喝水喝水喝水～ 🍻'
       message.info(text)
     }

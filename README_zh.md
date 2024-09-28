@@ -13,7 +13,6 @@
 
 [MIT](./license)
 
-
 ## Sponsors
 
 <p align="center">
