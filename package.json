@@ -24,11 +24,8 @@
   ],
   "main": "./dist/index.js",
   "icon": "assets/kv.png",
-  "files": [
-    "dist"
-  ],
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.96.0"
   },
   "activationEvents": [
     "onStartupFinished"
@@ -45,18 +42,18 @@
     "release": "bumpp && pnpm run publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.7.3",
-    "@types/node": "^18.19.54",
-    "@types/vscode": "^1.93.0",
-    "@vscode-use/utils": "^0.1.30",
-    "bumpp": "^9.6.0",
+    "@antfu/eslint-config": "^3.11.2",
+    "@types/node": "^18.19.68",
+    "@types/vscode": "^1.96.0",
+    "@vscode-use/utils": "^0.1.39",
+    "bumpp": "^9.9.0",
     "eslint": "^8.57.1",
     "esno": "^0.16.3",
     "pnpm": "^8.15.9",
     "rimraf": "^4.4.1",
     "tsup": "^6.7.0",
-    "typescript": "^5.6.2",
+    "typescript": "^5.7.2",
     "vitest": "^0.29.8",
-    "vsce": "^2.15.0"
+    "@vscode/vsce": "^3.2.1"
   }
 }
