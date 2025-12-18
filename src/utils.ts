@@ -8,7 +8,7 @@ export function timeDifference(targetTime: string): string {
   targetDateTime.setHours(targetHour, targetMinute, 0, 0)
 
   // 计算时间差
-  const timeDiff = targetDateTime.getTime() - currentTime.getTime()
+  const timeDiff = Math.max(0, targetDateTime.getTime() - currentTime.getTime())
 
   // 提取小时、分钟和秒数差异
   const hours = Math.floor(timeDiff / (1000 * 60 * 60))
@@ -24,7 +24,7 @@ export function getSpecialHoliday() {
   const day = today.getDate()
 
   // 特殊节日的日期，以月份和日期为键值对
-  const specialHolidays: any = {
+  const specialHolidays: Record<string, string> = {
     '1-1': '今天是元旦节 —— 迎接新年，庆祝活动，休假放松。',
     '2-14': '今天是情人节 —— 送礼物、表达爱意，约会，浪漫晚餐。',
     '3-8': '今天是妇女节 —— 表达对女性的尊重和赞美，送花、礼物。',
@@ -45,17 +45,13 @@ export function getTime() {
   const now = new Date()
   const hour = now.getHours()
   const minute = now.getMinutes()
-  return `${hour}:${minute}`
+  return `${hour}:${String(minute).padStart(2, '0')}`
 }
 
 export function isOverTime(time: string) {
-  const [hour, minute] = time.split(':')
-  const [nowHour, nowMinute] = getTime().split(':')
-  if (+nowHour > +hour)
-    return true
-  if (nowHour === hour && +nowMinute > +minute)
-    return true
-  return false
+  const [hour, minute] = time.split(':').map(Number)
+  const now = new Date()
+  return (now.getHours() * 60 + now.getMinutes()) > (hour * 60 + minute)
 }
 
 export function getDayOfWeek() {

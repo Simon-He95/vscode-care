@@ -3,7 +3,6 @@
   "name": "vscode-care",
   "displayName": "vscode-care",
   "version": "0.0.9",
-  "packageManager": "pnpm@8.15.9",
   "description": "vscode-care",
   "author": "Simon He <https://github.com/Simon-He95>",
   "license": "MIT",
@@ -22,18 +21,115 @@
   "categories": [
     "Other"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "icon": "assets/kv.png",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.96.0",
+    "node": ">=18.12.0"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:vscode-care.menu",
+    "onCommand:vscode-care.toggleEnabled",
+    "onCommand:vscode-care.snooze10m",
+    "onCommand:vscode-care.snooze30m",
+    "onCommand:vscode-care.snooze60m",
+    "onCommand:vscode-care.resume",
+    "onCommand:vscode-care.allowToday",
+    "onCommand:vscode-care.openReport"
   ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-care.menu",
+        "title": "vscode-care: Menu"
+      },
+      {
+        "command": "vscode-care.toggleEnabled",
+        "title": "vscode-care: Toggle Enabled"
+      },
+      {
+        "command": "vscode-care.snooze10m",
+        "title": "vscode-care: Snooze 10 Minutes"
+      },
+      {
+        "command": "vscode-care.snooze30m",
+        "title": "vscode-care: Snooze 30 Minutes"
+      },
+      {
+        "command": "vscode-care.snooze60m",
+        "title": "vscode-care: Snooze 60 Minutes"
+      },
+      {
+        "command": "vscode-care.resume",
+        "title": "vscode-care: Resume Notifications"
+      },
+      {
+        "command": "vscode-care.allowToday",
+        "title": "vscode-care: Allow Coding Today"
+      },
+      {
+        "command": "vscode-care.openReport",
+        "title": "vscode-care: Open Today Report"
+      }
+    ],
+    "configuration": {
+      "title": "vscode-care",
+      "properties": {
+        "vscode-care.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable vscode-care."
+        },
+        "vscode-care.workStart": {
+          "type": "string",
+          "default": "9:00",
+          "description": "Work start time in 24h format, e.g. 9:00 or 09:00."
+        },
+        "vscode-care.workEnd": {
+          "type": "string",
+          "default": "18:00",
+          "description": "Work end time in 24h format, e.g. 18:00."
+        },
+        "vscode-care.weekendBlock": {
+          "type": "boolean",
+          "default": true,
+          "description": "Block coding on weekends (undo and prompt)."
+        },
+        "vscode-care.waterReminder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a water reminder around xx:31 when you type."
+        },
+        "vscode-care.statusAnimation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Animate the status bar text."
+        },
+        "vscode-care.breakReminder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remind you to take a break after continuous coding."
+        },
+        "vscode-care.breakIntervalMinutes": {
+          "type": "number",
+          "default": 50,
+          "minimum": 10,
+          "description": "Break reminder interval in minutes."
+        },
+        "vscode-care.idleResetMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "If no typing for N minutes, treat it as a new session."
+        }
+      }
+    }
+  },
   "scripts": {
     "dev": "pnpm build --watch",
     "test": "vitest",
-    "build": "tsup src/index.ts --external vscode",
+    "build": "tsdown --external vscode --format cjs",
     "pack": "vsce package --no-dependencies",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --cache --fix",
@@ -49,10 +145,7 @@
     "@vscode/vsce": "^3.2.1",
     "bumpp": "^9.9.0",
     "eslint": "^8.57.1",
-    "esno": "^0.16.3",
-    "pnpm": "^8.15.9",
-    "rimraf": "^4.4.1",
-    "tsup": "^6.7.0",
+    "tsdown": "^0.18.1",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }
